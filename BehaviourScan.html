@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BehaveScan — Behavioral Identity Intelligence</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['DM Sans','sans-serif'],
+        display: ['Sora','sans-serif'],
+      },
+      colors: {
+        brand: {
+          50:'#f0f4ff',100:'#e0eaff',200:'#c7d7fe',
+          500:'#6366f1',600:'#4f46e5',700:'#4338ca',900:'#1e1b4b',
+        }
+      }
+    }
+  }
+}
+</script>
+<style>
+  html{scroll-behavior:smooth}
+  body{font-family:'DM Sans',sans-serif;background:#fafafa;color:#111}
+  .font-display{font-family:'Sora',sans-serif}
+  .tab-active{border-bottom:2px solid #4f46e5;color:#4f46e5;font-weight:600}
+  .tab-inactive{border-bottom:2px solid transparent;color:#6b7280}
+  .score-ring-svg{transform:rotate(-90deg)}
+  .bar-fill{transition:width 1s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp .55s ease forwards}
+  .fade-up-2{animation:fadeUp .55s .12s ease forwards;opacity:0}
+  .fade-up-3{animation:fadeUp .55s .24s ease forwards;opacity:0}
+  .fade-up-4{animation:fadeUp .55s .36s ease forwards;opacity:0}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .float{animation:float 3.8s ease-in-out infinite}
+  .pulse-dot{animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  #heatmap{cursor:crosshair;display:block}
+</style>
+</head>
+<body class="overflow-x-hidden">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-10">
+      <a href="#" class="flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center shadow-sm">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 003 10c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+          </svg>
+        </div>
+        <span style="font-family:'Sora',sans-serif" class="font-bold text-lg tracking-tight text-gray-900">BehaveScan<span class="text-brand-600">.</span></span>
+      </a>
+      <div class="hidden md:flex items-center gap-7">
+        <a href="#features" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">Features</a>
+        <a href="#how" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">How it works</a>
+        <a href="#analyzer" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">Live Demo</a>
+        <a href="#pricing" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">Pricing</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="hidden md:block text-sm text-gray-600 hover:text-gray-900 px-4 py-2 transition-colors">Sign in →</button>
+      <button class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all shadow-sm hover:shadow-md">Get started free</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="bg-white pt-16 pb-0 overflow-hidden">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-14 items-center">
+
+      <!-- Left copy -->
+      <div class="pb-20 max-w-lg">
+        <div class="fade-up inline-flex items-center gap-2 bg-brand-50 text-brand-600 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-600 pulse-dot inline-block"></span>
+          Real-time behavioral biometrics
+        </div>
+        <h1 style="font-family:'Sora',sans-serif" class="fade-up-2 text-5xl font-extrabold text-gray-900 leading-[1.08] tracking-tight mb-6">
+          Detect bots with<br/><span class="text-brand-600">behavioral</span> precision
+        </h1>
+
+        <!-- Tabs -->
+        <div class="fade-up-3 flex border-b border-gray-200 mb-6">
+          <button onclick="switchTab('personal')" id="tab-personal" class="tab-active px-5 py-3 text-sm transition-all">For websites</button>
+          <button onclick="switchTab('enterprise')" id="tab-enterprise" class="tab-inactive px-5 py-3 text-sm transition-all">For enterprises</button>
+        </div>
+
+        <div id="content-personal" class="fade-up-4">
+          <p class="text-gray-500 text-base leading-relaxed mb-5">
+            BehaveScan silently reads how visitors move, type, and click — delivering a real-time human confidence score with zero CAPTCHA friction.
+          </p>
+          <ul class="space-y-2.5 mb-8">
+            <li class="flex items-center gap-2.5 text-sm text-gray-700">
+              <svg class="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Mouse trajectory + micro-jitter analysis
+            </li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-700">
+              <svg class="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Keystroke rhythm &amp; typing cadence detection
+            </li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-700">
+              <svg class="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Zero friction — invisible to real users
+            </li>
+          </ul>
+          <div class="flex items-center gap-3 flex-wrap">
+            <a href="#analyzer" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-6 py-3 rounded-full transition-all shadow-lg shadow-brand-200 hover:shadow-xl hover:shadow-brand-200 inline-block">Try live demo</a>
+            <a href="#how" class="text-sm font-medium text-gray-600 hover:text-gray-900 inline-flex items-center gap-1.5 transition-colors">See how it works <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></a>
+          </div>
+          <p class="mt-4 text-xs text-gray-400">No credit card required · Free up to 10,000 sessions/mo</p>
+        </div>
+
+        <div id="content-enterprise" class="hidden">
+          <p class="text-gray-500 text-base leading-relaxed mb-5">Protect at scale. BehaveScan Enterprise integrates with your identity stack and flags suspicious sessions before damage is done.</p>
+          <ul class="space-y-2.5 mb-8">
+            <li class="flex items-center gap-2.5 text-sm text-gray-700"><svg class="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>99.8% bot detection accuracy</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-700"><svg class="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>SOC 2 compliant + GDPR-ready</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-700"><svg class="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Custom ML training on your data</li>
+          </ul>
+          <button class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-6 py-3 rounded-full transition-all shadow-md">Talk to sales</button>
+        </div>
+      </div>
+
+      <!-- Right: photo + floating cards -->
+      <div class="relative hidden lg:flex items-center justify-center">
+        <img
+          src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80"
+          alt="Team at work"
+          class="w-full h-[500px] object-cover rounded-3xl shadow-2xl"
+          style="object-position:center 15%"
+        />
+        <div class="absolute bottom-0 left-0 right-0 h-40 rounded-b-3xl" style="background:linear-gradient(to top,rgba(250,250,250,1),transparent)"></div>
+
+        <!-- Score card -->
+        <div class="float absolute -left-10 top-[38%]">
+          <div class="bg-white rounded-2xl shadow-xl p-5 w-52 border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Human Score</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+            </div>
+            <div class="flex items-end gap-1.5 mb-3">
+              <span style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900" id="hero-score">0</span>
+              <span class="text-gray-400 text-xl mb-1">%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-1.5 mb-3">
+              <div id="hero-bar" class="bg-emerald-400 h-1.5 rounded-full transition-all duration-700" style="width:0%"></div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-xs text-emerald-600 font-semibold" id="hero-label">Awaiting data</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live signals card -->
+        <div class="float absolute -right-4 bottom-24" style="animation-delay:.9s">
+          <div class="bg-white rounded-2xl shadow-xl p-4 w-46 border border-gray-100">
+            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Live signals</p>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-brand-500"></div><span class="text-xs text-gray-600">Jitter: <span id="live-jitter">—</span></span></div>
+              <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div><span class="text-xs text-gray-600">WPM: <span id="live-wpm">—</span></span></div>
+              <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div><span class="text-xs text-gray-600">Rhythm: <span id="live-rhythm">—</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="bg-gray-50 border-y border-gray-100 py-7">
+  <div class="max-w-7xl mx-auto px-6">
+    <p class="text-center text-[11px] text-gray-400 uppercase tracking-widest font-semibold mb-5">Trusted by teams at</p>
+    <div class="flex flex-wrap justify-center items-center gap-10">
+      <span style="font-family:'Sora',sans-serif" class="font-bold text-lg text-gray-200 tracking-tight">Stripe</span>
+      <span style="font-family:'Sora',sans-serif" class="font-bold text-lg text-gray-200 tracking-tight">Notion</span>
+      <span style="font-family:'Sora',sans-serif" class="font-bold text-lg text-gray-200 tracking-tight">Linear</span>
+      <span style="font-family:'Sora',sans-serif" class="font-bold text-lg text-gray-200 tracking-tight">Vercel</span>
+      <span style="font-family:'Sora',sans-serif" class="font-bold text-lg text-gray-200 tracking-tight">Figma</span>
+      <span style="font-family:'Sora',sans-serif" class="font-bold text-lg text-gray-200 tracking-tight">Loom</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<section class="bg-white py-16 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-100">
+      <div class="text-center"><div style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900 mb-1.5">99.8%</div><div class="text-sm text-gray-500">Bot detection accuracy</div></div>
+      <div class="text-center"><div style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900 mb-1.5">12ms</div><div class="text-sm text-gray-500">Average latency</div></div>
+      <div class="text-center"><div style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900 mb-1.5">4B+</div><div class="text-sm text-gray-500">Sessions analyzed</div></div>
+      <div class="text-center"><div style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900 mb-1.5">0</div><div class="text-sm text-gray-500">CAPTCHAs shown</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="bg-gray-50 py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <div class="inline-flex items-center gap-2 bg-brand-50 text-brand-600 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">How it works</div>
+      <h2 style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Three layers of behavioral intelligence</h2>
+      <p class="text-gray-500 text-lg max-w-xl mx-auto">Every interaction leaves a fingerprint. BehaveScan reads it silently and scores it instantly.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 bg-brand-50 group-hover:bg-brand-600 rounded-xl flex items-center justify-center mb-6 transition-colors">
+          <svg class="w-6 h-6 text-brand-600 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+        </div>
+        <h3 style="font-family:'Sora',sans-serif" class="font-bold text-xl text-gray-900 mb-3">Mouse Dynamics</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-6">Tracks trajectory curves, velocity changes, micro-jitter, and hover hesitation. Bots move in straight lines — humans don't.</p>
+        <div class="pt-5 border-t border-gray-100">
+          <div class="flex justify-between text-xs text-gray-400 mb-1.5"><span>Naturalness score</span><span class="text-brand-600 font-semibold">87%</span></div>
+          <div class="w-full bg-gray-100 rounded-full h-1.5"><div class="bg-brand-600 h-1.5 rounded-full" style="width:87%"></div></div>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 bg-brand-50 group-hover:bg-brand-600 rounded-xl flex items-center justify-center mb-6 transition-colors">
+          <svg class="w-6 h-6 text-brand-600 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        </div>
+        <h3 style="font-family:'Sora',sans-serif" class="font-bold text-xl text-gray-900 mb-3">Keystroke Biometrics</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-6">Measures flight time between keys, dwell duration, typing speed variance, and error-correction patterns unique to each human.</p>
+        <div class="pt-5 border-t border-gray-100">
+          <div class="flex justify-between text-xs text-gray-400 mb-1.5"><span>Rhythm variance</span><span class="text-brand-600 font-semibold">74ms</span></div>
+          <div class="w-full bg-gray-100 rounded-full h-1.5"><div class="bg-brand-600 h-1.5 rounded-full" style="width:62%"></div></div>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 bg-brand-50 group-hover:bg-brand-600 rounded-xl flex items-center justify-center mb-6 transition-colors">
+          <svg class="w-6 h-6 text-brand-600 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <h3 style="font-family:'Sora',sans-serif" class="font-bold text-xl text-gray-900 mb-3">Click Intelligence</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-6">Click frequency, timing, spatial distribution, and pressure reveal whether intent is organic or mechanically automated.</p>
+        <div class="pt-5 border-t border-gray-100">
+          <div class="flex justify-between text-xs text-gray-400 mb-1.5"><span>Pattern entropy</span><span class="text-brand-600 font-semibold">High</span></div>
+          <div class="w-full bg-gray-100 rounded-full h-1.5"><div class="bg-brand-600 h-1.5 rounded-full" style="width:79%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE ANALYZER -->
+<section id="analyzer" class="bg-white py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 bg-brand-50 text-brand-600 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
+        <span class="w-1.5 h-1.5 bg-brand-600 rounded-full pulse-dot inline-block"></span>
+        Live analyzer
+      </div>
+      <h2 style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">See it work in real time</h2>
+      <p class="text-gray-500 text-lg max-w-md mx-auto">Move your mouse over the canvas, then type the passage. Watch your score update live.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+
+      <!-- Heatmap -->
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <p class="font-semibold text-gray-900 text-sm">Mouse Trajectory Heatmap</p>
+            <p class="text-xs text-gray-400 mt-0.5">Move your cursor across this area</p>
+          </div>
+          <div class="flex items-center gap-1.5 bg-emerald-50 px-3 py-1 rounded-full">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
+            <span class="text-xs text-emerald-600 font-semibold">Recording</span>
+          </div>
+        </div>
+        <div class="relative bg-gray-50">
+          <canvas id="heatmap" width="800" height="280" class="w-full"></canvas>
+          <div class="absolute bottom-3 right-4 font-mono text-xs text-gray-400" id="coord-display">X:— Y:—</div>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-3 border-t border-gray-100">
+          <div class="text-center">
+            <p class="text-xs text-gray-400 mb-1">Velocity</p>
+            <p style="font-family:'Sora',sans-serif" class="text-xl font-bold text-gray-900" id="velocity">0 <span class="text-sm font-normal text-gray-400">px/s</span></p>
+          </div>
+          <div class="text-center border-x border-gray-100">
+            <p class="text-xs text-gray-400 mb-1">Micro-jitter</p>
+            <p style="font-family:'Sora',sans-serif" class="text-xl font-bold text-gray-900" id="jitter">0.00</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xs text-gray-400 mb-1">Clicks</p>
+            <p style="font-family:'Sora',sans-serif" class="text-xl font-bold text-gray-900" id="click-count">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score -->
+      <div class="flex flex-col gap-4">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 text-center">
+          <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-4">Human probability</p>
+          <div class="relative inline-flex items-center justify-center w-36 h-36 mb-4 mx-auto">
+            <svg class="score-ring-svg w-full h-full" viewBox="0 0 144 144">
+              <circle cx="72" cy="72" r="62" fill="none" stroke="#f3f4f6" stroke-width="10"/>
+              <circle id="score-circle" cx="72" cy="72" r="62" fill="none"
+                stroke="#4f46e5" stroke-width="10" stroke-linecap="round"
+                stroke-dasharray="389.6" stroke-dashoffset="389.6"
+                style="transition:stroke-dashoffset .8s ease,stroke .5s ease"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span style="font-family:'Sora',sans-serif" class="text-3xl font-extrabold text-gray-900" id="score-num">0</span>
+              <span class="text-xs text-gray-400 -mt-0.5">%</span>
+            </div>
+          </div>
+          <div id="verdict-badge" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold bg-gray-100 text-gray-400 transition-all">
+            Awaiting data
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex-1">
+          <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-5">Signal breakdown</p>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-xs mb-1.5"><span class="text-gray-600 font-medium">Mouse naturalness</span><span class="text-brand-600 font-bold" id="val-mouse">—</span></div>
+              <div class="w-full bg-gray-100 rounded-full h-1.5"><div id="bar-mouse" class="bg-brand-600 h-1.5 rounded-full bar-fill" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1.5"><span class="text-gray-600 font-medium">Typing rhythm</span><span class="text-brand-600 font-bold" id="val-typing">—</span></div>
+              <div class="w-full bg-gray-100 rounded-full h-1.5"><div id="bar-typing" class="bg-brand-600 h-1.5 rounded-full bar-fill" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1.5"><span class="text-gray-600 font-medium">Click patterns</span><span class="text-brand-600 font-bold" id="val-click">—</span></div>
+              <div class="w-full bg-gray-100 rounded-full h-1.5"><div id="bar-click" class="bg-brand-600 h-1.5 rounded-full bar-fill" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1.5"><span class="text-gray-600 font-medium">Hesitation index</span><span class="text-brand-600 font-bold" id="val-hesit">—</span></div>
+              <div class="w-full bg-gray-100 rounded-full h-1.5"><div id="bar-hesit" class="bg-brand-600 h-1.5 rounded-full bar-fill" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Typing test -->
+    <div class="mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="font-semibold text-gray-900 text-sm">Keystroke Dynamics Test</p>
+          <p class="text-xs text-gray-400 mt-0.5">Your rhythm matters more than accuracy</p>
+        </div>
+        <div class="flex items-center gap-5 text-xs text-gray-500 flex-wrap">
+          <span>WPM <strong class="text-gray-900 ml-1" id="wpm">0</strong></span>
+          <span>Accuracy <strong class="text-gray-900 ml-1" id="accuracy">—</strong></span>
+          <span>Rhythm var <strong class="text-gray-900 ml-1" id="rhythm-var">—</strong></span>
+          <span class="text-brand-600 font-semibold" id="progress">0% complete</span>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="bg-gray-50 border border-gray-100 rounded-xl px-5 py-4 text-sm leading-9 tracking-wide mb-4 select-none font-mono" id="type-prompt"></div>
+        <textarea id="typing-input"
+          class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all placeholder-gray-300"
+          rows="2" placeholder="Start typing here…" spellcheck="false"></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES SPLIT with photo -->
+<section id="features" class="bg-gray-50 py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-20 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-brand-50 text-brand-600 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6">Privacy first</div>
+        <h2 style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">Powerful detection that respects your users</h2>
+        <p class="text-gray-500 text-base leading-relaxed mb-10">All behavioral signals are computed on-device and anonymized before transmission. No PII ever leaves the browser. We analyze patterns, not people.</p>
+        <div class="space-y-6">
+          <div class="flex gap-4">
+            <div class="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <svg class="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <div><h4 class="font-semibold text-gray-900 mb-1">On-device processing</h4><p class="text-sm text-gray-500 leading-relaxed">Raw signals are computed locally. Only the anonymized score is ever sent to our servers.</p></div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <svg class="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+            </div>
+            <div><h4 class="font-semibold text-gray-900 mb-1">GDPR &amp; CCPA compliant</h4><p class="text-sm text-gray-500 leading-relaxed">No cookies, no fingerprinting, no personal data retention. Built for global compliance.</p></div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <svg class="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div><h4 class="font-semibold text-gray-900 mb-1">One-line integration</h4><p class="text-sm text-gray-500 leading-relaxed">Drop in a single script tag. Works with any stack — React, Vue, Next.js, plain HTML.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="relative">
+        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=700&q=80" alt="Team collaborating" class="rounded-2xl w-full h-[460px] object-cover shadow-xl" style="object-position:center 20%"/>
+        <div class="absolute inset-0 rounded-2xl" style="background:linear-gradient(145deg,rgba(79,70,229,0.12),transparent 55%)"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTEGRATION SECTION -->
+<section class="bg-white py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-20 items-center">
+      <div class="relative order-2 lg:order-1">
+        <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=700&q=80" alt="Developer working" class="rounded-2xl w-full h-[420px] object-cover shadow-xl" style="object-position:center 25%"/>
+        <div class="absolute bottom-6 left-6 right-6">
+          <div class="bg-gray-900/92 backdrop-blur-sm rounded-xl p-4">
+            <p class="font-mono text-xs text-gray-500 mb-2">// Add to your &lt;head&gt;</p>
+            <p class="font-mono text-sm text-emerald-400">&lt;script src="https://cdn.behavescan.io/v2.js"</p>
+            <p class="font-mono text-sm text-emerald-400">&nbsp;&nbsp;data-key="<span class="text-yellow-400">bscan_live_xxxxx</span>"&gt;&lt;/script&gt;</p>
+          </div>
+        </div>
+      </div>
+      <div class="order-1 lg:order-2">
+        <div class="inline-flex items-center gap-2 bg-brand-50 text-brand-600 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6">Ready in 5 minutes</div>
+        <h2 style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">Drop one line.<br/>Get instant protection.</h2>
+        <p class="text-gray-500 text-base leading-relaxed mb-8">No backend changes required. Scores start flowing immediately. SDKs available for React, Vue, Angular, and Next.js with full TypeScript support.</p>
+        <div class="flex gap-3 flex-wrap">
+          <button class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-6 py-3 rounded-full transition-all shadow-lg shadow-brand-200">Read the docs</button>
+          <button class="border border-gray-200 hover:border-gray-300 text-gray-700 text-sm font-semibold px-6 py-3 rounded-full transition-all hover:shadow-sm">View on GitHub</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="bg-brand-600 py-20">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <h2 style="font-family:'Sora',sans-serif" class="text-4xl font-extrabold text-white tracking-tight mb-4">Start detecting bots today</h2>
+    <p class="text-indigo-200 text-lg mb-8">Free for up to 10,000 sessions per month. No credit card needed.</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <button class="bg-white text-brand-600 hover:bg-indigo-50 text-sm font-bold px-8 py-3.5 rounded-full shadow-lg transition-all hover:shadow-xl">Get started free</button>
+      <button class="border border-indigo-400 text-white hover:bg-indigo-700 text-sm font-semibold px-8 py-3.5 rounded-full transition-all">Talk to sales</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-gray-900 py-12">
+  <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center"><svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 003 10c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg></div>
+      <span style="font-family:'Sora',sans-serif" class="font-bold text-white">BehaveScan<span class="text-brand-500">.</span></span>
+    </div>
+    <div class="flex gap-6 text-sm text-gray-500">
+      <a href="#" class="hover:text-gray-300 transition-colors">Privacy</a>
+      <a href="#" class="hover:text-gray-300 transition-colors">Terms</a>
+      <a href="#" class="hover:text-gray-300 transition-colors">Security</a>
+      <a href="#" class="hover:text-gray-300 transition-colors">Status</a>
+    </div>
+    <p class="text-sm text-gray-600">© 2025 BehaveScan Inc.</p>
+  </div>
+</footer>
+
+<script>
+// === Tab switching ===
+function switchTab(t){
+  ['personal','enterprise'].forEach(id=>{
+    document.getElementById('tab-'+id).className=id===t?'tab-active px-5 py-3 text-sm transition-all':'tab-inactive px-5 py-3 text-sm transition-all';
+    document.getElementById('content-'+id).classList.toggle('hidden',id!==t);
+  });
+}
+
+// === Heatmap ===
+const canvas=document.getElementById('heatmap');
+const ctx=canvas.getContext('2d');
+let W=canvas.width,H=canvas.height;
+const spots=[],trail=[];
+let lmx=0,lmy=0,lmt=0,tv=0,vn=0,js=0,jn=0,cc=0;
+
+function resize(){
+  const r=canvas.parentElement.getBoundingClientRect();
+  W=canvas.width=Math.round(r.width);H=canvas.height=280;draw();
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f9fafb';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,0,0,0.035)';ctx.lineWidth=1;
+  for(let x=0;x<=W;x+=48){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<=H;y+=48){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  spots.forEach(s=>{
+    const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r);
+    g.addColorStop(0,`rgba(79,70,229,${s.a})`);
+    g.addColorStop(.5,`rgba(99,102,241,${s.a*.35})`);
+    g.addColorStop(1,'transparent');
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle=g;ctx.fill();
+  });
+  if(trail.length>1){
+    ctx.beginPath();ctx.moveTo(trail[0].x,trail[0].y);
+    trail.forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.strokeStyle='rgba(79,70,229,0.45)';ctx.lineWidth=1.8;ctx.stroke();
+  }
+  if(trail.length){
+    const p=trail[trail.length-1];
+    ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,Math.PI*2);
+    ctx.fillStyle='#4f46e5';ctx.fill();
+    ctx.beginPath();ctx.arc(p.x,p.y,8,0,Math.PI*2);
+    ctx.fillStyle='rgba(79,70,229,.15)';ctx.fill();
+  }
+}
+resize();window.addEventListener('resize',resize);
+
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect();
+  const sx=canvas.width/r.width,sy=canvas.height/r.height;
+  const x=(e.clientX-r.left)*sx,y=(e.clientY-r.top)*sy;
+  if(x<0||x>W||y<0||y>H)return;
+  const now=Date.now();
+  trail.push({x,y});if(trail.length>70)trail.shift();
+  if(lmt>0){
+    const dt=Math.max((now-lmt)/1000,.001);
+    const v=Math.hypot(x-lmx,y-lmy)/dt;
+    tv+=v;vn++;
+    document.getElementById('velocity').innerHTML=`${Math.round(tv/vn)} <span class="text-sm font-normal text-gray-400">px/s</span>`;
+    if(trail.length>2){
+      const a=trail[trail.length-3],b=trail[trail.length-2],c=trail[trail.length-1];
+      const j=Math.hypot((a.x+c.x)/2-b.x,(a.y+c.y)/2-b.y);
+      js+=j;jn++;
+      const aj=js/jn;
+      document.getElementById('jitter').textContent=aj.toFixed(2);
+      document.getElementById('live-jitter').textContent=aj.toFixed(2);
+      updateMouse(tv/vn,aj);
+    }
+  }
+  spots.push({x,y,r:24,a:.09});
+  if(spots.length>500)spots.splice(0,30);
+  draw();
+  document.getElementById('coord-display').textContent=`X:${Math.round(x)} Y:${Math.round(y)}`;
+  lmx=x;lmy=y;lmt=now;
+});
+
+document.addEventListener('click',e=>{
+  cc++;document.getElementById('click-count').textContent=cc;
+  const r=canvas.getBoundingClientRect();
+  const x=(e.clientX-r.left)*(canvas.width/r.width),y=(e.clientY-r.top)*(canvas.height/r.height);
+  if(x>=0&&x<=W&&y>=0&&y<=H){spots.push({x,y,r:48,a:.28});draw()}
+  updateClick();
+});
+
+// === Typing ===
+const PROMPT="The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.";
+function renderPrompt(v){
+  document.getElementById('type-prompt').innerHTML=PROMPT.split('').map((c,i)=>{
+    const safe=c===' '?'&nbsp;':c;
+    if(i<v.length)return`<span style="color:#4f46e5;font-weight:600">${safe}</span>`;
+    if(i===v.length)return`<span style="background:#e0e7ff;color:#4f46e5;border-radius:3px;padding:0 2px">${safe}</span>`;
+    return`<span style="color:#d1d5db">${safe}</span>`;
+  }).join('');
+}
+renderPrompt('');
+
+let ts=0,lk=0,ivs=[];
+document.getElementById('typing-input').addEventListener('keydown',()=>{
+  const n=Date.now();if(lk>0)ivs.push(n-lk);lk=n;if(!ts)ts=n;
+});
+document.getElementById('typing-input').addEventListener('input',e=>{
+  const v=e.target.value;
+  const el=Math.max((Date.now()-ts)/60000,.001);
+  const wpm=Math.round(v.trim().split(/\s+/).filter(Boolean).length/el);
+  document.getElementById('wpm').textContent=wpm;
+  document.getElementById('live-wpm').textContent=wpm;
+  let ok=0;for(let i=0;i<Math.min(v.length,PROMPT.length);i++)if(v[i]===PROMPT[i])ok++;
+  document.getElementById('accuracy').textContent=(v.length?Math.round(ok/v.length*100):100)+'%';
+  if(ivs.length>0){
+    const avg=ivs.reduce((a,b)=>a+b,0)/ivs.length;
+    const std=Math.round(Math.sqrt(ivs.reduce((s,x)=>s+(x-avg)**2,0)/ivs.length));
+    document.getElementById('rhythm-var').textContent=std+'ms';
+    document.getElementById('live-rhythm').textContent=std+'ms';
+    updateTyping(wpm,std,v.length?Math.round(ok/v.length*100):100);
+  }
+  document.getElementById('progress').textContent=Math.round(Math.min(v.length,PROMPT.length)/PROMPT.length*100)+'% complete';
+  renderPrompt(v);
+});
+
+// === Score engine ===
+let sc={mouse:0,typing:0,click:25,hesit:35};
+
+function updateMouse(vel,jit){
+  let s=25;
+  if(vel>15&&vel<1500)s+=30;
+  if(jit>.2&&jit<14)s+=30;
+  if(jit<.05)s-=15;if(vel>3000)s-=10;
+  sc.mouse=Math.max(0,Math.min(100,s));updateAll();
+}
+function updateTyping(wpm,std,acc){
+  let s=0;
+  if(wpm>=10&&wpm<=200)s+=30;
+  if(std>8&&std<500)s+=38;
+  if(std<4)s=Math.max(0,s-25);
+  if(acc>65)s+=20;
+  sc.typing=Math.max(0,Math.min(100,s));updateAll();
+}
+function updateClick(){
+  sc.click=Math.min(100,25+cc*9);
+  sc.hesit=Math.min(100,35+ivs.filter(v=>v>200).length*4);
+  updateAll();
+}
+
+function updateAll(){
+  const tot=Math.round(sc.mouse*.35+sc.typing*.35+sc.click*.15+sc.hesit*.15);
+  const circ=389.6;
+  document.getElementById('score-circle').style.strokeDashoffset=circ-circ*tot/100;
+  document.getElementById('score-num').textContent=tot;
+  document.getElementById('hero-score').textContent=tot;
+  document.getElementById('hero-bar').style.width=tot+'%';
+
+  let col,bg,fg,label;
+  if(tot>=80){col='#22c55e';bg='#dcfce7';fg='#15803d';label='✓ Human confirmed'}
+  else if(tot>=55){col='#f59e0b';bg='#fef3c7';fg='#b45309';label='~ Likely human'}
+  else if(tot>=30){col='#f97316';bg='#ffedd5';fg='#c2410c';label='? Inconclusive'}
+  else{col='#ef4444';bg='#fee2e2';fg='#b91c1c';label='✗ Bot suspected'}
+
+  document.getElementById('score-circle').style.stroke=col;
+  document.getElementById('hero-bar').style.background=col;
+  document.getElementById('hero-label').textContent=label.slice(2);
+  document.getElementById('hero-label').style.color=fg;
+  const badge=document.getElementById('verdict-badge');
+  badge.textContent=label;badge.style.background=bg;badge.style.color=fg;
+
+  ['mouse','typing','click','hesit'].forEach(k=>{
+    document.getElementById('bar-'+k).style.width=sc[k]+'%';
+    document.getElementById('bar-'+k).style.background=col;
+    document.getElementById('val-'+k).textContent=sc[k]+'%';
+  });
+}
+</script>
+</body>
+</html>
