@@ -26,7 +26,7 @@ tailwind.config = {
 </script>
 <style>
   html{scroll-behavior:smooth}
-  body{font-family:'DM Sans',sans-serif;background:#fafafa;color:#111}
+  body{margin: 0; padding: 10px; font-family:'DM Sans',sans-serif;background:#fafafa;color:#111}
   .font-display{font-family:'Sora',sans-serif}
   .tab-active{border-bottom:2px solid #4f46e5;color:#4f46e5;font-weight:600}
   .tab-inactive{border-bottom:2px solid transparent;color:#6b7280}
@@ -277,7 +277,7 @@ tailwind.config = {
           </div>
         </div>
         <div class="relative bg-gray-50">
-          <canvas id="heatmap" width="800" height="280" class="w-full"></canvas>
+          <canvas id="heatmap" class="w-full touch-none"></canvas>
           <div class="absolute bottom-3 right-4 font-mono text-xs text-gray-400" id="coord-display">X:— Y:—</div>
         </div>
         <div class="px-6 py-4 grid grid-cols-3 border-t border-gray-100">
@@ -477,8 +477,10 @@ const spots=[],trail=[];
 let lmx=0,lmy=0,lmt=0,tv=0,vn=0,js=0,jn=0,cc=0;
 
 function resize(){
-  const r=canvas.parentElement.getBoundingClientRect();
-  W=canvas.width=Math.round(r.width);H=canvas.height=280;draw();
+  const r = canvas.parentElement.getBoundingClientRect();
+  W = canvas.width = Math.round(r.width);
+  H = canvas.height = window.innerWidth < 640 ? 220 : 280; // smaller on mobile
+  draw();
 }
 function draw(){
   ctx.clearRect(0,0,W,H);
@@ -536,6 +538,80 @@ canvas.addEventListener('mousemove',e=>{
   draw();
   document.getElementById('coord-display').textContent=`X:${Math.round(x)} Y:${Math.round(y)}`;
   lmx=x;lmy=y;lmt=now;
+});
+// === Touch support for mobile ===
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault(); // stop scrolling while interacting
+  const touch = e.touches[0];
+  const r = canvas.getBoundingClientRect();
+  const sx = canvas.width / r.width;
+  const sy = canvas.height / r.height;
+
+  const x = (touch.clientX - r.left) * sx;
+  const y = (touch.clientY - r.top) * sy;
+
+  if(x < 0 || x > W || y < 0 || y > H) return;
+
+  const now = Date.now();
+
+  trail.push({x,y});
+  if(trail.length > 70) trail.shift();
+
+  if(lmt > 0){
+    const dt = Math.max((now - lmt)/1000, .001);
+    const v = Math.hypot(x - lmx, y - lmy) / dt;
+
+    tv += v; vn++;
+
+    document.getElementById('velocity').innerHTML =
+      `${Math.round(tv/vn)} <span class="text-sm font-normal text-gray-400">px/s</span>`;
+
+    if(trail.length > 2){
+      const a = trail[trail.length-3];
+      const b = trail[trail.length-2];
+      const c = trail[trail.length-1];
+
+      const j = Math.hypot((a.x+c.x)/2 - b.x, (a.y+c.y)/2 - b.y);
+
+      js += j; jn++;
+      const aj = js/jn;
+
+      document.getElementById('jitter').textContent = aj.toFixed(2);
+      document.getElementById('live-jitter').textContent = aj.toFixed(2);
+
+      updateMouse(tv/vn, aj);
+    }
+  }
+
+  spots.push({x,y,r:24,a:.09});
+  if(spots.length > 500) spots.splice(0,30);
+
+  draw();
+
+  document.getElementById('coord-display').textContent =
+    `X:${Math.round(x)} Y:${Math.round(y)}`;
+
+  lmx = x; lmy = y; lmt = now;
+}, { passive: false });
+
+
+// Tap = click equivalent
+canvas.addEventListener('touchstart', e => {
+  const touch = e.touches[0];
+  const r = canvas.getBoundingClientRect();
+
+  const x = (touch.clientX - r.left) * (canvas.width / r.width);
+  const y = (touch.clientY - r.top) * (canvas.height / r.height);
+
+  cc++;
+  document.getElementById('click-count').textContent = cc;
+
+  if(x>=0 && x<=W && y>=0 && y<=H){
+    spots.push({x,y,r:48,a:.28});
+    draw();
+  }
+
+  updateClick();
 });
 
 document.addEventListener('click',e=>{
